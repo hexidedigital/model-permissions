@@ -1,0 +1,34 @@
+{
+    "name": "hexide-digital/model-permissions",
+    "description": "control access to models using groups and permissions",
+    "license": "MIT",
+    "type": "library",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Oleksandr-Moik",
+            "email": "sashamoik2016@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "HexideDigital\\ModelPermissions\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^7.4|^8.0",
+        "laravel/framework": "^8.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HexideDigital\\FileUploader\\FileUploaderServiceProvider"
+            ],
+            "aliases": {
+                "FileUploader": "HexideDigital\\FileUploader\\Facades\\FileUploader"
+            }
+        }
+    }
+}
