@@ -34,7 +34,7 @@ class PermissionRelation
      * @param string $table
      * @return self
      */
-    public static function touch(string $table): self
+    public function touch(string $table): self
     {
         $ins = new self();
         $ins->table = $table;
@@ -46,7 +46,7 @@ class PermissionRelation
      *
      * @param array|string $permissions
      */
-    public static function createOnly($permissions): void
+    public function createOnly($permissions): void
     {
         if (!is_array($permissions)) {
             $permissions = array($permissions);

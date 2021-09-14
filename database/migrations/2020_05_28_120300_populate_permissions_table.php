@@ -1,6 +1,6 @@
 <?php
 
-use HexideDigital\ModelPermissions\PermissionRelation;
+use HexideDigital\ModelPermissions\Classes\PermissionRelation;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
