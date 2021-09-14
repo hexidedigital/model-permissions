@@ -1,7 +1,7 @@
 <?php
 
 
-namespace HexideDigital\ModelPermissions;
+namespace HexideDigital\ModelPermissions\Classes;
 
 
 use Exception;

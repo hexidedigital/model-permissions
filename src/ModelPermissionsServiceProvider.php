@@ -2,6 +2,7 @@
 
 namespace HexideDigital\ModelPermissions;
 
+use HexideDigital\ModelPermissions\Classes\PermissionRelation;
 use Illuminate\Support\ServiceProvider;
 
 class ModelPermissionsServiceProvider extends ServiceProvider
@@ -31,7 +32,7 @@ class ModelPermissionsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind('permission_relation', PermissionRelation::class);
     }
 
 }

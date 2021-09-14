@@ -24,10 +24,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "HexideDigital\\FileUploader\\FileUploaderServiceProvider"
+                "HexideDigital\\ModelPermissions\\ModelPermissionsServiceProvider"
             ],
             "aliases": {
-                "FileUploader": "HexideDigital\\FileUploader\\Facades\\FileUploader"
+                "PermissionRelation": "HexideDigital\\ModelPermissions\\Facades\\PermissionRelation"
             }
         }
     }
