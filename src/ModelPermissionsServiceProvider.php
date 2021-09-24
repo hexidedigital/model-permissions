@@ -22,7 +22,9 @@ class ModelPermissionsServiceProvider extends ServiceProvider
             __DIR__.'/../config/modelPermissions.php' => config_path('modelPermissions.php'),
         ], 'model-permissions-configs');
 
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        if(config('modelPermissions.vendor_migrations', true)) {
+            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        }
     }
 
     /**

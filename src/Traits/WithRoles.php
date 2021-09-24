@@ -2,6 +2,7 @@
 
 namespace HexideDigital\ModelPermissions\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use HexideDigital\ModelPermissions\Models\Permission;
 use HexideDigital\ModelPermissions\Models\Role;
@@ -11,6 +12,7 @@ use HexideDigital\ModelPermissions\Models\Role;
  * For User model
  *
  * @package HexideDigital\ModelPermissions\Traits
+ * @mixin Model
  */
 trait WithRoles
 {

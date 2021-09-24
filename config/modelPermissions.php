@@ -2,6 +2,8 @@
 
 return [
 
+    'vendor_migrations' => true,
+
     // on default create, but can be changed
     'with_table_prefix' => true,
     //
