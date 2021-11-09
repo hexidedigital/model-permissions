@@ -5,23 +5,29 @@ namespace HexideDigital\ModelPermissions\Classes;
 
 
 use Exception;
+use HexideDigital\ModelPermissions\Models\Permission;
+use HexideDigital\ModelPermissions\Models\Role;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use HexideDigital\ModelPermissions\Models\Permission;
-use HexideDigital\ModelPermissions\Models\Role;
 
 class PermissionRelation
 {
     // config properties
-    private bool $with_table_prefix;
-    private string $divider;
-    private array $all;
+    /** @var bool */
+    private $with_table_prefix;
+    /** @var string */
+    private $divider;
+    /** @var array */
+    private $all;
 
     // property to create
-    private string $table = '';
-    private array $permissions = [];
-    private array $extra = [];
+    /** @var string */
+    private $table = '';
+    /** @var array */
+    private $permissions = [];
+    /** @var array */
+    private $extra = [];
 
     public function __construct()
     {
@@ -124,14 +130,14 @@ class PermissionRelation
     /**
      * Execute the population
      */
-    public function populate():void
+    public function populate(): void
     {
         $this->_populate();
     }
 
     private function loadConfigs(): void
     {
-        foreach (config('modelPermissions.all', []) as $item){
+        foreach (config('modelPermissions.all', []) as $item) {
             $this->all[$item] = $item;
         }
         $this->divider = config('modelPermissions.divider');
@@ -140,10 +146,10 @@ class PermissionRelation
 
     private function append(array $permissions): self
     {
-        foreach ($permissions as $key){
-            if($title = config('modelPermissions.all.'.$key)){
+        foreach ($permissions as $key) {
+            if ($title = config('modelPermissions.all.' . $key)) {
                 $this->permissions[$key] = $title;
-            }else{
+            } else {
                 $this->permissions[$key] = $key;
             }
         }
@@ -170,9 +176,9 @@ class PermissionRelation
                     $data[] = $this->permission($title);
                 }
 
-                if((!empty($this->permissions) || !empty($this->extra)) && !empty($this->table)){
+                if ((!empty($this->permissions) || !empty($this->extra)) && !empty($this->table)) {
                     $permission = $this->permission(Permission::access);
-                    if(!in_array($permission, $data)){
+                    if (!in_array($permission, $data)) {
                         $data[] = $permission;
                     }
                 }
@@ -180,7 +186,7 @@ class PermissionRelation
                 $permissions = [];
 
                 foreach ($data as $perm) {
-                    $permissions[] = Permission::create($perm);
+                    $permissions[] = Permission::firstOrCreate($perm);
                 }
 
                 /** @var Collection $roles */

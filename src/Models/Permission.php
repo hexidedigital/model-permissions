@@ -22,12 +22,12 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Permission extends Model
 {
-    public const access  = 'access';
-    public const view    = 'view';
-    public const create  = 'create';
-    public const edit    = 'edit';
-    public const delete  = 'delete';
-    public const read    = 'read';
+    public const access = 'access';
+    public const view = 'view';
+    public const create = 'create';
+    public const edit = 'edit';
+    public const delete = 'delete';
+    public const read = 'read';
 
     /**
      * @var string[]
