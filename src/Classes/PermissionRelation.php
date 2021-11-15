@@ -47,6 +47,16 @@ class PermissionRelation
         return $ins;
     }
 
+    public function disablePrefix()
+    {
+        $this->with_table_prefix = false;
+    }
+
+    public function enablePrefix()
+    {
+        $this->with_table_prefix = true;
+    }
+
     /**
      * For creating only extra without table prefix
      *
@@ -59,7 +69,7 @@ class PermissionRelation
         }
 
         $ins = new static();
-        $ins->with_table_prefix = false;
+        $ins->disablePrefix();
         $ins->append($permissions)->_populate();
     }
 
@@ -85,7 +95,7 @@ class PermissionRelation
      */
     public function addCustom(): self
     {
-        $custom = config('modelPermissions.custom',);
+        $custom = config('modelPermissions.custom', []);
 
         return $this->extra($custom);
     }
@@ -105,11 +115,7 @@ class PermissionRelation
      */
     public function only($permissions): void
     {
-        if (!is_array($permissions)) {
-            $permissions = array($permissions);
-        }
-
-        $this->append(Arr::only($this->all, $permissions))->_populate();
+        $this->append(Arr::only($this->all, array_wrap($permissions)))->_populate();
     }
 
     /**
@@ -120,11 +126,7 @@ class PermissionRelation
      */
     public function except($permissions): void
     {
-        if (!is_array($permissions)) {
-            $permissions = array($permissions);
-        }
-
-        $this->append(Arr::except($this->all, $permissions))->_populate();
+        $this->append(Arr::except($this->all, array_wrap($permissions)))->_populate();
     }
 
     /**
@@ -141,17 +143,13 @@ class PermissionRelation
             $this->all[$item] = $item;
         }
         $this->divider = config('modelPermissions.divider');
-        $this->with_table_prefix = config('modelPermissions.with_table_prefix');
+        $this->with_table_prefix = true;
     }
 
     private function append(array $permissions): self
     {
         foreach ($permissions as $key) {
-            if ($title = config('modelPermissions.all.' . $key)) {
-                $this->permissions[$key] = $title;
-            } else {
-                $this->permissions[$key] = $key;
-            }
+            $this->permissions[$key] = $key;
         }
 
         return $this;

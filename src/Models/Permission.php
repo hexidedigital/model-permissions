@@ -2,23 +2,27 @@
 
 namespace HexideDigital\ModelPermissions\Models;
 
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * App\Models\Permission
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  * @property int $id
  * @property string|null $title
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @method static \Illuminate\Database\Eloquent\Builder|Permission newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Permission newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Permission query()
- * @method static \Illuminate\Database\Eloquent\Builder|Permission whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Permission whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Permission whereTitle($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Permission whereUpdatedAt($value)
+ * @property string $module
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @method static Builder|Permission newModelQuery()
+ * @method static Builder|Permission newQuery()
+ * @method static Builder|Permission query()
+ * @method static Builder|Permission whereCreatedAt($value)
+ * @method static Builder|Permission whereId($value)
+ * @method static Builder|Permission whereTitle($value)
+ * @method static Builder|Permission whereUpdatedAt($value)
  */
 class Permission extends Model
 {
@@ -44,5 +48,13 @@ class Permission extends Model
     public static function key(?string $module, string $permission): string
     {
         return $module . config('modelPermissions.divider') . $permission;
+    }
+
+    public function getModuleAttribute(): string
+    {
+        $array = explode(config('modelPermissions.divider'), $this->title);
+        array_pop($array);
+
+        return implode(config('modelPermissions.divider'), $array);
     }
 }
