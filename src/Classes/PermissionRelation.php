@@ -1,60 +1,51 @@
 <?php
 
-
 namespace HexideDigital\ModelPermissions\Classes;
-
 
 use Exception;
 use HexideDigital\ModelPermissions\Models\Permission;
 use HexideDigital\ModelPermissions\Models\Role;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class PermissionRelation
 {
     // config properties
-    /** @var bool */
-    private $with_table_prefix;
-    /** @var string */
-    private $divider;
-    /** @var array */
-    private $all;
+    private bool $withTablePrefix;
+    private string $divider;
+    private array $resourceKeys;
 
     // property to create
-    /** @var string */
-    private $table = '';
-    /** @var array */
-    private $permissions = [];
-    /** @var array */
-    private $extra = [];
+    private string $table = '';
+    private array $permissions = [];
+    private array $extra = [];
 
     public function __construct()
     {
         $this->loadConfigs();
     }
 
-    /**
-     * Setup table name
-     *
-     * @param string $table
-     * @return self
-     */
+    /** Setup table name */
     public function touch(string $table): self
     {
         $ins = new self();
         $ins->table = $table;
+
         return $ins;
     }
 
-    public function disablePrefix()
+    public function disablePrefix(): self
     {
-        $this->with_table_prefix = false;
+        $this->withTablePrefix = false;
+
+        return $this;
     }
 
-    public function enablePrefix()
+    public function enablePrefix(): self
     {
-        $this->with_table_prefix = true;
+        $this->withTablePrefix = true;
+
+        return $this;
     }
 
     /**
@@ -88,132 +79,93 @@ class PermissionRelation
         return $this->append($permissions);
     }
 
-    /**
-     * Append custom permission from configs
-     *
-     * @return self
-     */
-    public function addCustom(): self
+    /** Append set of permissions from config and execute the population */
+    public function addSet(string $name): self
     {
-        $custom = config('modelPermissions.custom', []);
+        $custom = config('model-permissions.permission_sets.' . $name, []);
 
         return $this->extra($custom);
     }
 
-    /**
-     * Append all permissions and execute the population
-     */
-    public function all(): void
+    /** Append custom permission from configs */
+    public function addCustomSet(): self
     {
-        $this->append($this->all)->_populate();
+        return $this->addSet('custom');
+    }
+
+    /** Append all permissions and execute the population */
+    public function addResourceSet(): void
+    {
+        $this->addSet('resource')->populate();
     }
 
     /**
      * Append only given permissions and execute the population
      *
-     * @param array|string $permissions
+     * @param array<string>|string $permissions
      */
     public function only($permissions): void
     {
-        $this->append(Arr::only($this->all, array_wrap($permissions)))->_populate();
+        $this->append(Arr::only($this->resourceKeys, array_wrap($permissions)))->_populate();
     }
 
     /**
      * Append all permission except given and execute the population
      *
-     * @param array|string $permissions
-     * @return void
+     * @param array<string>|string $permissions
      */
     public function except($permissions): void
     {
-        $this->append(Arr::except($this->all, array_wrap($permissions)))->_populate();
+        $this->append(Arr::except($this->resourceKeys, array_wrap($permissions)))->_populate();
     }
 
-    /**
-     * Execute the population
-     */
+    /** Execute the population */
     public function populate(): void
     {
-        $this->_populate();
-    }
-
-    private function loadConfigs(): void
-    {
-        foreach (config('modelPermissions.all', []) as $item) {
-            $this->all[$item] = $item;
-        }
-        $this->divider = config('modelPermissions.divider');
-        $this->with_table_prefix = true;
-    }
-
-    private function append(array $permissions): self
-    {
-        foreach ($permissions as $key) {
-            $this->permissions[$key] = $key;
-        }
-
-        return $this;
-    }
-
-    private function _populate(): void
-    {
         try {
-            if (((!empty($this->table) && $this->with_table_prefix)
-                    || (empty($this->table) && !$this->with_table_prefix)
-                ) && !empty($this->permissions)) {
+            if (!((!empty($this->table) && $this->withTablePrefix) || (empty($this->table) && !$this->withTablePrefix))
+                && empty($this->permissions)) {
+                throw new Exception(sprintf(
+                    '%s class: Can`t create permissions for table `%s` with %d permissions when table name is %s'
+                    , self::class
+                    , $this->table
+                    , sizeof($this->permissions)
+                    , $this->withTablePrefix ? 'required' : 'not required'
+                ));
+            }
 
-                $data = [];
+            $data = [];
 
-                if (!empty($this->extra)) {
-                    foreach ($this->extra as $title) {
-                        $data[] = $this->permission($title);
-                    }
-                }
-
-                foreach ($this->permissions as $title) {
+            if (!empty($this->extra)) {
+                foreach ($this->extra as $title) {
                     $data[] = $this->permission($title);
                 }
-
-                if ((!empty($this->permissions) || !empty($this->extra)) && !empty($this->table)) {
-                    $permission = $this->permission(Permission::access);
-                    if (!in_array($permission, $data)) {
-                        $data[] = $permission;
-                    }
-                }
-
-                $permissions = [];
-
-                foreach ($data as $perm) {
-                    $permissions[] = Permission::firstOrCreate($perm);
-                }
-
-                /** @var Collection $roles */
-                $roles = Role::whereIn('key', config('modelPermissions.roles_to_assign'))->get();
-
-                if ($roles->isNotEmpty()) {
-                    /** @var Role $role */
-                    foreach ($roles as $role) {
-                        foreach ($permissions as $permission) {
-                            DB::table('permission_role')->insert(
-                                array(
-                                    'role_id' => $role->id,
-                                    'permission_id' => $permission->id
-                                )
-                            );
-                        }
-                    }
-                }
-            } else {
-                throw new Exception(
-                    sprintf(
-                        '%s class: Can`t create permissions for table `%s` with %d permissions when table name is %s'
-                        , self::class
-                        , $this->table
-                        , sizeof($this->permissions)
-                        , $this->with_table_prefix ? 'required' : 'not required'
-                    )
-                );
             }
+
+            foreach ($this->permissions as $title) {
+                $data[] = $this->permission($title);
+            }
+
+            if ((!empty($this->permissions) || !empty($this->extra)) && !empty($this->table)) {
+                $permission = $this->permission(Permission::Access);
+                if (!in_array($permission, $data)) {
+                    $data[] = $permission;
+                }
+            }
+
+            $permissions = [];
+
+            foreach ($data as $perm) {
+                $permissions[] = Permission::firstOrCreate($perm);
+            }
+
+            Role::whereIn('key', config('model-permissions.roles_to_assign'))
+                ->get('id')
+                ->each(function (Role $role) use ($permissions) {
+                    foreach ($permissions as $permission) {
+                        DB::table('permission_role')->insert(['role_id' => $role->id, 'permission_id' => $permission->id]);
+                    }
+                });
         } catch (Exception $e) {
             echo sprintf(
                 'Exception in %s class when trying populate. Err code: %s' . PHP_EOL
@@ -226,16 +178,32 @@ class PermissionRelation
         }
     }
 
+    private function loadConfigs(): void
+    {
+        $resource = config('model-permissions.permission_sets.resource', []);
+        $this->resourceKeys = array_combine($resource, $resource);
+
+        $this->divider = config('model-permissions.divider');
+        $this->withTablePrefix = true;
+    }
+
+    private function append(array $permissions): self
+    {
+        $this->permissions = array_combine($permissions, $permissions);
+
+        return $this;
+    }
+
     private function permission(string $title): array
     {
         return array(
-            'title' => $this->concat($title)
+            'title' => $this->makeTitle($title)
         );
     }
 
-    private function concat(string $title): string
+    private function makeTitle(string $title): string
     {
-        if ($this->with_table_prefix) {
+        if ($this->withTablePrefix) {
             return $this->table . $this->divider . $title;
         } else {
             return $title;

@@ -10,44 +10,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-
 /**
  * For User model
  *
- * @package HexideDigital\ModelPermissions\Traits
  * @mixin Model
  * @mixin Eloquent
  */
 trait WithRoles
 {
-    /**
-     * @return BelongsToMany
-     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
     }
 
-    /**
-     * @return HasManyThrough
-     */
     public function permissions(): HasManyThrough
     {
         return $this->hasManyThrough(Permission::class, Role::class);
     }
 
-    /**
-     * @return bool
-     */
     public function hasAdminAccess(): bool
     {
         return $this->roles()->where('admin_access', TRUE)->count() > 0;
     }
 
-    /**
-     * @param string|null $permission_key
-     * @return bool
-     */
     public function hasPermission(?string $permission_key): bool
     {
         return $this->permissions()->where('title', '=', $permission_key)->get()->isNotEmpty();
@@ -55,24 +40,22 @@ trait WithRoles
 
     public function scopeAdmins(Builder $builder): Builder
     {
-        return $builder->whereHas('roles', fn(Builder $builder) => $builder
-            ->where('key', 'admin'));
+        return $builder->whereHas('roles', fn(Builder $builder) => $builder->where('key', 'admin'));
     }
 
-    public function isAdmin(): BelongsToMany
+    public function isAdmin(): bool
     {
-        return $this->roles()->where('key', 'admin');
+        return $this->roles()->where('key', 'admin')->count() > 0;
     }
 
     public function scopeUsers(Builder $builder): Builder
     {
-        return $builder->whereHas('roles', fn(Builder $builder) => $builder
-            ->where('key', 'user'));
+        return $builder->whereHas('roles', fn(Builder $builder) => $builder->where('key', 'user'));
     }
 
-    public function isUser()
+    public function isUser(): bool
     {
-        return $this->roles()->where('key', 'user');
+        return $this->roles()->where('key', 'user')->count() > 0;
     }
 
 }

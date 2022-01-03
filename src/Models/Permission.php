@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * App\Models\Permission
- *
  * @mixin Eloquent
+ *
  * @property int $id
  * @property string|null $title
  * @property string $module
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|Permission newModelQuery()
  * @method static Builder|Permission newQuery()
  * @method static Builder|Permission query()
@@ -26,35 +26,29 @@ use Illuminate\Support\Carbon;
  */
 class Permission extends Model
 {
-    public const access = 'access';
-    public const view = 'view';
-    public const create = 'create';
-    public const edit = 'edit';
-    public const delete = 'delete';
-    public const read = 'read';
+    public const Access = 'access';
+    public const View = 'view';
+    public const Create = 'create';
+    public const Edit = 'edit';
+    public const Delete = 'delete';
+    public const Read = 'read';
+    public const ForceDelete = 'force_delete';
+    public const Restore = 'restore';
 
-    /**
-     * @var string[]
-     */
     protected $fillable = [
         'title',
     ];
 
-    /**
-     * @param string|null $module
-     * @param string $permission
-     * @return string
-     */
     public static function key(?string $module, string $permission): string
     {
-        return $module . config('modelPermissions.divider') . $permission;
+        return $module . config('model-permissions.divider') . $permission;
     }
 
     public function getModuleAttribute(): string
     {
-        $array = explode(config('modelPermissions.divider'), $this->title);
+        $array = explode(config('model-permissions.divider'), $this->title);
         array_pop($array);
 
-        return implode(config('modelPermissions.divider'), $array);
+        return implode(config('model-permissions.divider'), $array);
     }
 }

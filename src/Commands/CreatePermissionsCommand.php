@@ -9,36 +9,10 @@ use Symfony\Component\Console\Input\InputOption;
 
 class CreatePermissionsCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $name = 'model-permissions:module';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Create all necessary permission for module.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
-    public function handle()
+    public function handle(): int
     {
         $this->withProgressBar($this->argument('module'), function ($module) {
             $this->newLine();
@@ -53,7 +27,7 @@ class CreatePermissionsCommand extends Command
             if ($custom = $this->option('custom')) {
                 $custom = array_filter($custom);
                 if (empty($custom)) {
-                    $pm_builder->addCustom();
+                    $pm_builder->addCustomSet();
                 } else {
                     $pm_builder->extra($custom);
                 }
@@ -64,7 +38,7 @@ class CreatePermissionsCommand extends Command
             } elseif ($only = $this->option('only')) {
                 $pm_builder->only($only);
             } else {
-                $pm_builder->all();
+                $pm_builder->addResourceSet();
             }
         });
 
