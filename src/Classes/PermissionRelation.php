@@ -61,7 +61,7 @@ class PermissionRelation
 
         $ins = new static();
         $ins->disablePrefix();
-        $ins->append($permissions)->_populate();
+        $ins->append($permissions)->populate();
     }
 
     /**
@@ -106,7 +106,7 @@ class PermissionRelation
      */
     public function only($permissions): void
     {
-        $this->append(Arr::only($this->resourceKeys, array_wrap($permissions)))->_populate();
+        $this->append(Arr::only($this->resourceKeys, array_wrap($permissions)))->populate();
     }
 
     /**
@@ -116,7 +116,7 @@ class PermissionRelation
      */
     public function except($permissions): void
     {
-        $this->append(Arr::except($this->resourceKeys, array_wrap($permissions)))->_populate();
+        $this->append(Arr::except($this->resourceKeys, array_wrap($permissions)))->populate();
     }
 
     /** Execute the population */
