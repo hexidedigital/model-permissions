@@ -1,14 +1,14 @@
 <?php
 
-return [
+use HexideDigital\ModelPermissions\Models\Permission;
+use HexideDigital\ModelPermissions\Models\Role;
 
-    'vendor_migrations' => true,
-    'with_table_prefix' => true,
+return [
 
     'divider'           => '_',
 
     // specify model/table names which need to create
-    // on first migration
+    // on first migration and been secured for edit and delete
     'startup_permissions' => [
         'roles', 'permissions', 'users',
         // ...
@@ -16,15 +16,19 @@ return [
 
     // keys
     'roles' => [
-        'admin', 'user',
+        Role::SuperAdmin,
+        Role::Admin,
+        Role::User,
     ],
 
     'roles_to_assign' => [
-        'admin',
+        Role::SuperAdmin,
+        Role::Admin,
     ],
 
     'roles_admin_access' => [
-        'admin',
+        Role::SuperAdmin,
+        Role::Admin,
     ],
 
 
@@ -32,11 +36,11 @@ return [
 
         // on default create
         'resource'  => [
-            'access',
-            'view',
-            'create',
-            'edit',
-            'delete',
+            Permission::ViewAny,
+            Permission::View,
+            Permission::Update,
+            Permission::Create,
+            Permission::Delete,
         ],
 
         'custom' => [
@@ -46,9 +50,9 @@ return [
 
         // custom sets
         'soft_delete' => [
-            'view_deleted',
-            'restore',
-            'force_delete',
+            Permission::ViewDeleted,
+            Permission::Restore,
+            Permission::ForceDelete,
         ],
     ],
 ];

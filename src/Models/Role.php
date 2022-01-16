@@ -30,8 +30,14 @@ use Illuminate\Support\Carbon;
  */
 class Role extends Model
 {
-    public const Admin = 1;
-    public const User = 2;
+    public const SuperAdmin = 1;
+    public const Admin = 2;
+    public const User = 3;
+    public const Keys = [
+        self::SuperAdmin => 'super-admin',
+        self::Admin => 'admin',
+        self::User => 'user',
+    ];
 
     protected $fillable = [
         'title',

@@ -26,13 +26,14 @@ use Illuminate\Support\Carbon;
  */
 class Permission extends Model
 {
-    public const Access = 'access';
+    public const ViewAny = 'viewAny';
     public const View = 'view';
     public const Create = 'create';
-    public const Edit = 'edit';
+    public const Update = 'update';
     public const Delete = 'delete';
-    public const Read = 'read';
-    public const ForceDelete = 'force_delete';
+
+    public const ViewDeleted = 'viewDeleted';
+    public const ForceDelete = 'forceDelete';
     public const Restore = 'restore';
 
     protected $fillable = [
@@ -41,14 +42,14 @@ class Permission extends Model
 
     public static function key(?string $module, string $permission): string
     {
-        return $module . config('model-permissions.divider') . $permission;
+        return $module . config('model-permissions.divider', '_') . $permission;
     }
 
     public function getModuleAttribute(): string
     {
-        $array = explode(config('model-permissions.divider'), $this->title);
+        $array = explode(config('model-permissions.divider', '_'), $this->title);
         array_pop($array);
 
-        return implode(config('model-permissions.divider'), $array);
+        return implode(config('model-permissions.divider', '_'), $array);
     }
 }

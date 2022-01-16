@@ -11,18 +11,10 @@ class ModelPermissionsServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-
         $this->publishes([
-            __DIR__ . '/../database/migrations/' => database_path('migrations')
-        ], 'model-permissions-migrations');
-
-        $this->publishes([
+            __DIR__ . '/../database/migrations/' => database_path('migrations'),
             __DIR__ . '/../config/model-permissions.php' => config_path('model-permissions.php'),
-        ], 'model-permissions-configs');
-
-        if (config('model-permissions.vendor_migrations', true)) {
-            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-        }
+        ], 'model-permissions');
 
         $this->commands([
             InitCommand::class,
