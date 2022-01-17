@@ -3,6 +3,7 @@
 namespace HexideDigital\ModelPermissions\Traits;
 
 use Eloquent;
+use HexideDigital\ModelPermissions\Models\Permission;
 use HexideDigital\ModelPermissions\Models\Role;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -35,9 +36,13 @@ trait HasRoles
         return $permissions->unique();
     }
 
-    public function hasPermission(?string $permission_key): bool
+    public function hasPermissionKey(string $permission, ?string $module = null): bool
     {
-        return $this->permissions->contains($permission_key);
+        if(isset($module)){
+            $permission = Permission::key($module, $permission);
+        }
+
+        return $this->permissions->contains($permission);
     }
 
     public function hasAdminAccess(): bool
