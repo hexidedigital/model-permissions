@@ -11,11 +11,10 @@ use Illuminate\Support\Carbon;
  * @mixin Eloquent
  *
  * @property int $id
- * @property string|null $title
- * @property string $module
+ * @property string $title
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- *
+ * @property-read string $module
  * @method static Builder|Permission newModelQuery()
  * @method static Builder|Permission newQuery()
  * @method static Builder|Permission query()
