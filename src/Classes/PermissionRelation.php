@@ -2,20 +2,21 @@
 
 namespace HexideDigital\ModelPermissions\Classes;
 
+use Error;
 use Exception;
 use HexideDigital\ModelPermissions\Models\Permission;
 use HexideDigital\ModelPermissions\Models\Role;
 use Illuminate\Support\Collection;
+use Throwable;
 
 class PermissionRelation
 {
     // config properties
-    private bool $withTablePrefix;
-    private string $divider;
+    private bool $withTablePrefix = true;
     private Collection $resourceKeys;
 
     // property to create
-    private string $tableName = '';
+    private ?string $tableName = null;
     private Collection $permissions;
     private Collection $extraPermissions;
 
@@ -29,10 +30,7 @@ class PermissionRelation
     public function loadConfigs(): void
     {
         $resource = config('model-permissions.permission_sets.resource', []);
-        $this->resourceKeys = collect(array_combine($resource, $resource));
-
-        $this->divider = config('model-permissions.divider', '_');
-        $this->withTablePrefix = true;
+        $this->resourceKeys = collect($resource)->combine($resource);
     }
 
     /** Setup table name */
@@ -124,12 +122,7 @@ class PermissionRelation
     public function populate(): void
     {
         try {
-            if (
-                !(
-                    (!empty($this->tableName) && $this->withTablePrefix) || (empty($this->tableName) && !$this->withTablePrefix)
-                )
-                && $this->permissions->isEmpty()
-            ) {
+            if (!($this->creatingWithTablePrefix() || $this->creatingWithoutTablePrefix()) && $this->permissions->isEmpty()) {
                 throw new Exception(sprintf(
                     '%s class: Can`t create permissions for table `%s` with %d permissions when table name is %s'
                     , self::class
@@ -139,43 +132,31 @@ class PermissionRelation
                 ));
             }
 
-            $permissionsToCreate = collect();
-            $titles = $this->permissions->merge($this->extraPermissions);
-            foreach ($titles as $title) {
-                $permissionsToCreate->push($this->permission($title));
-            }
-
-            if (($this->permissions->isNotEmpty() || $this->extraPermissions->isNotEmpty()) && !empty($this->tableName)) {
-                $permissionsToCreate->push($this->permission(Permission::ViewAny));
-            }
-
-            $permissions = collect();
-            foreach ($permissionsToCreate->unique() as $permission) {
-                $permissions->push(Permission::firstOrCreate($permission)->id);
-            }
+            $permissions = $this->permissions
+                ->merge($this->extraPermissions)
+                ->map(fn($title) => $this->permission($title))
+                ->when(
+                    $this->needsToCreateViewAnyPermission(),
+                    fn(Collection $collection) => $collection->push($this->permission(Permission::ViewAny))
+                )
+                ->unique()
+                ->map(fn($permissionTitle) => Permission::firstOrCreate($permissionTitle)->id);
 
             foreach (config('model-permissions.roles_to_assign', [Role::SuperAdmin, Role::Admin]) as $role_id) {
                 if ($role = Role::find($role_id)) {
                     $role->permissions()->attach($permissions);
                 }
             }
-        } catch (\Error $e) {
+        } catch (Error|Exception|Throwable $e) {
+            report($e);
+
             echo sprintf(
-                'Error in %s class when trying populate. Err code: %s' . PHP_EOL
+                '%s in %s class when trying populate.' . PHP_EOL
                 . 'Message: %s' . PHP_EOL
+                , get_class($e)
                 , self::class
-                , $e->getCode()
                 , $e->getMessage()
             );
-        } catch (Exception $e) {
-            echo sprintf(
-                'Exception in %s class when trying populate. Err code: %s' . PHP_EOL
-                . 'Message: %s' . PHP_EOL
-                , self::class
-                , $e->getCode()
-                , $e->getMessage()
-            );
-            //throw new Exception($e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -186,11 +167,11 @@ class PermissionRelation
      */
     private function append($permissions): self
     {
-        $permissions = Collection::wrap($permissions);
-
-        foreach ($permissions as $permission) {
-            $this->permissions->put($permission, $permission);
-        }
+        $this->permissions = Collection::wrap($permissions)
+            ->reduce(
+                fn(Collection $collection, $permission) => $collection->put($permission, $permission),
+                collect()
+            );
 
         return $this;
     }
@@ -203,10 +184,25 @@ class PermissionRelation
     private function makeTitle(string $title): string
     {
         if ($this->withTablePrefix) {
-            return $this->tableName . $this->divider . $title;
-        } else {
-            return $title;
+            return $this->tableName . config('model-permissions.divider', '_') . $title;
         }
+
+        return $title;
+    }
+
+    private function needsToCreateViewAnyPermission(): bool
+    {
+        return !$this->tableName && ($this->permissions->isNotEmpty() || $this->extraPermissions->isNotEmpty());
+    }
+
+    private function creatingWithTablePrefix(): bool
+    {
+        return !$this->tableName && !$this->withTablePrefix;
+    }
+
+    private function creatingWithoutTablePrefix(): bool
+    {
+        return $this->tableName && $this->withTablePrefix;
     }
 
     public function __call($name, $arguments)
