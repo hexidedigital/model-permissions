@@ -8,6 +8,7 @@ use HexideDigital\ModelPermissions\Models\Role;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
 
 /**
  * For User model
@@ -20,25 +21,24 @@ trait HasRoles
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class)
-            ->with('permissions', function (BelongsToMany $builder){
+            ->with('permissions', function (BelongsToMany $builder) {
                 return $builder->select('title');
             });
     }
 
-    public function getPermissionsAttribute(): \Illuminate\Support\Collection
+    public function getPermissionsAttribute(): Collection
     {
-        $permissions = collect();
-
-        $this->roles->each(function (Role $role) use (&$permissions) {
-            $permissions = $permissions->merge($role->permissions->pluck('title'));
-        });
-
-        return $permissions->unique();
+        return $this->roles
+            ->reduce(
+                fn(Collection $carry, Role $role) => $carry->merge($role->permissions->pluck('title')),
+                collect()
+            )
+            ->unique();
     }
 
     public function hasPermissionKey(string $permission, ?string $module = null): bool
     {
-        if(isset($module)){
+        if (isset($module)) {
             $permission = Permission::key($module, $permission);
         }
 
@@ -48,10 +48,7 @@ trait HasRoles
     public function hasAdminAccess(): bool
     {
         return $this->roles
-                ->filter(function (Role $role) {
-                    return in_array($role->id, [Role::Admin, Role::SuperAdmin])
-                        || $role->admin_access;
-                })
+                ->filter(fn (Role $role) => in_array($role->id, [Role::Admin, Role::SuperAdmin]) || $role->admin_access)
                 ->count() > 0;
     }
 
