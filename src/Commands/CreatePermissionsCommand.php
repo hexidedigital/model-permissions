@@ -16,7 +16,7 @@ class CreatePermissionsCommand extends Command
     {
         $this->withProgressBar($this->argument('module'), function ($module) {
             $this->newLine();
-            $this->info('Module: '. $module);
+            $this->info('Module: ' . $module);
 
             $pm_builder = PermissionRelation::touch($module);
 
@@ -24,8 +24,7 @@ class CreatePermissionsCommand extends Command
                 $pm_builder->disablePrefix();
             }
 
-            if ($custom = $this->option('custom')) {
-                $custom = array_filter($custom);
+            if ($custom = array_filter($this->option('custom-set'))) {
                 if (empty($custom)) {
                     $pm_builder->addCustomSet();
                 } else {
@@ -39,6 +38,12 @@ class CreatePermissionsCommand extends Command
                 $pm_builder->only($only);
             } else {
                 $pm_builder->addResourceSet();
+            }
+
+            if ($sets = array_filter($this->option('sets'))) {
+                foreach ($sets as $set) {
+                    $pm_builder->addSet($set);
+                }
             }
         });
 
@@ -58,9 +63,10 @@ class CreatePermissionsCommand extends Command
     {
         return [
             new InputOption('no-prefix', null, InputOption::VALUE_NONE, 'Create permissions without touching module name.'),
-            new InputOption('custom', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'List of custom attributes.'),
+            new InputOption('custom-set', 'c', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'List of custom attributes.'),
             new InputOption('except', 'e', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Skip this permissions.'),
             new InputOption('only', 'o', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Create only this.'),
+            new InputOption('set', 's', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'List of set names (from config file)'),
         ];
     }
 }
