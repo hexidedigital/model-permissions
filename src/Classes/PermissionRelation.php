@@ -72,8 +72,6 @@ class PermissionRelation
      * Append extra permissions
      *
      * @param array|string $permissions
-     *
-     * @return self
      */
     public function extra($permissions): self
     {
@@ -170,7 +168,7 @@ class PermissionRelation
         $this->permissions = Collection::wrap($permissions)
             ->reduce(
                 fn(Collection $collection, $permission) => $collection->put($permission, $permission),
-                collect()
+                $this->permissions
             );
 
         return $this;

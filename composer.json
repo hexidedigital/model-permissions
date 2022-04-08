@@ -3,7 +3,7 @@
     "description": "control access to models using groups and permissions",
     "license": "MIT",
     "type": "library",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "authors": [
         {
             "name": "Oleksandr-Moik",
